@@ -8,7 +8,8 @@
 <h1>メニュー一覧</h1>
 
 <div class="button-container">
-    <a href="search.html" class="button">検索画面へ</a>
-    <a href="classroom_display.html" class="button">教室表示画面へ</a>
+   <a href="{{ url_for('search') }}" class="button">検索画面へ</a>
+
+   <a href="{{ url_for('classroom_display') }}" class="button">教室表示画面へ</a>
 </div>
 {% endblock %}
