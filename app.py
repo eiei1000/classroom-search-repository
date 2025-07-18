@@ -53,5 +53,9 @@ def search():
 def index():
     return render_template('index.html')
 
+@app.route('/display')
+def classroom_display():
+    return "ここは教室表示画面です"
+
 if __name__ == '__main__':
     app.run(debug=True)
