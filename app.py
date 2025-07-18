@@ -13,7 +13,7 @@ def load_classrooms():
             classrooms.append(row['room'])
     return classrooms
 
-# スケジュール読み込み（教室＋曜日で管理）
+# スケジュール読み込み（教室＋曜日で管理、時間＋分）
 def load_schedules():
     schedules = {}
     with open('classroom_schedules.csv', newline='', encoding='utf-8') as csvfile:
@@ -21,14 +21,20 @@ def load_schedules():
         for row in reader:
             room = row['room']
             weekday = row['weekday']
-            start = int(row['start_hour'])
-            end = int(row['end_hour'])
+            try:
+                start_hour = int(row['start_hour'])
+                start_minute = int(row['start_minute'])
+                end_hour = int(row['end_hour'])
+                end_minute = int(row['end_minute'])
+            except (ValueError, TypeError):
+                # 空欄の行はスキップ
+                continue
             
             if room not in schedules:
                 schedules[room] = {}
             if weekday not in schedules[room]:
                 schedules[room][weekday] = []
-            schedules[room][weekday].append((start, end))
+            schedules[room][weekday].append((start_hour, start_minute, end_hour, end_minute))
     return schedules
 
 @app.route('/search', methods=['GET', 'POST'])
@@ -39,32 +45,31 @@ def search():
     classroom = None
     time = datetime.now().strftime("%H:%M")
 
-    # 曜日を取得して「月」「火」形式に変換
+    # 今日の曜日（日本語）取得
     now_weekday_en = datetime.now().strftime("%a")  # Mon, Tue, ...
     weekday_map = {'Mon': '月', 'Tue': '火', 'Wed': '水', 'Thu': '木', 'Fri': '金', 'Sat': '土', 'Sun': '日'}
     weekday = weekday_map[now_weekday_en]
 
-    now_hour = datetime.now().hour
+    now = datetime.now()
 
-    today_schedule = []  # 今日のその教室のスケジュール一覧
+    today_schedule = []
 
     if request.method == 'POST':
         classroom = request.form.get('classroom')
 
-        # 今日のスケジュールを取得
         if classroom in schedules and weekday in schedules[classroom]:
             today_schedule = schedules[classroom][weekday]
         else:
             today_schedule = []
 
-        # 空きか使用中か判定
-        if not today_schedule:
-            status = "空き"
-        else:
-            if any(start <= now_hour < end for start, end in today_schedule):
+        # 現在の時刻が含まれているか判定
+        status = "空き"
+        for start_hour, start_minute, end_hour, end_minute in today_schedule:
+            start_time = now.replace(hour=start_hour, minute=start_minute, second=0, microsecond=0)
+            end_time = now.replace(hour=end_hour, minute=end_minute, second=0, microsecond=0)
+            if start_time <= now < end_time:
                 status = "使用中"
-            else:
-                status = "空き"
+                break
 
     return render_template(
         'search.html',
@@ -73,7 +78,7 @@ def search():
         classroom=classroom,
         time=time,
         weekday=weekday,
-        today_schedule=today_schedule  # 追加で渡す
+        today_schedule=today_schedule
     )
 
 @app.route('/')

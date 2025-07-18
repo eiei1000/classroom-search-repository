@@ -1,4 +1,4 @@
-room,weekday,start_hour,end_hour
+room,weekday,start_hour,start_minute,end_hour,end_minute
 工1-221,月,8,30,14,20
 工1-221,火,8,30,14,20
 工1-221,水,8,30,11,50
