@@ -1,5 +1,29 @@
 {% extends "base.html" %}
 
-{% block title %}{% endblock %}
+{% block title %}教室検索{% endblock %}
 
-{% block content %}{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">教室空き状況検索</h1>
+
+    <form method="post">
+        <div class="mb-3">
+            <label for="classroom" class="form-label">教室を選択：</label>
+            <select name="classroom" id="classroom" class="form-select" required>
+                <option value="" disabled selected>教室を選んでください</option>
+                {% for room in classrooms %}
+                <option value="{{ room }}" {% if classroom == room %}selected{% endif %}>{{ room }}教室</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">検索</button>
+    </form>
+
+    {% if status %}
+    <div class="mt-4">
+        <h2>現在時刻：{{ time }}</h2>
+        <h2>教室：{{ classroom }} は「{{ status }}」です。</h2>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
