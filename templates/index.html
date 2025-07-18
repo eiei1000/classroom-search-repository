@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}教室検索アプリホーム{% endblock %}
+{% block title %}
+一覧画面
+{% endblock %}
 
 {% block content %}
-<header>
-    <h1>教室検索アプリ</h1>
-    <p>琉大工学部の教室の空き情報を検索することができます！</p>
-</header>
+<h1>メニュー一覧</h1>
+
+<div class="button-container">
+    <a href="search.html" class="button">検索画面へ</a>
+    <a href="classroom_display.html" class="button">教室表示画面へ</a>
+</div>
 {% endblock %}
