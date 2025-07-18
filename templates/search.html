@@ -22,7 +22,18 @@
     {% if status %}
     <div class="mt-4">
         <h2>現在時刻：{{ time }}</h2>
-        <h2>教室：{{ classroom }} は「{{ status }}」です。</h2>
+        <h2>本日（{{ weekday }}）の教室：{{ classroom }} は「{{ status }}」です。</h2>
+
+        {% if today_schedule %}
+        <h3 class="mt-3">本日のスケジュール：</h3>
+        <ul>
+            {% for start, end in today_schedule %}
+            <li>{{ start }}時〜{{ end }}時</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>本日のスケジュールはありません。</p>
+        {% endif %}
     </div>
     {% endif %}
 </div>
