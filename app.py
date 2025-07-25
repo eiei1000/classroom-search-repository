@@ -37,7 +37,7 @@ def load_schedules():
                 room = row.get('room')
                 weekday = row.get('weekday')
                 try:
-                    sh = int(row.get('start_hour', 0))
+                    sh = int(row.get('start_hour', 0)) 
                     sm = int(row.get('start_minute', 0))
                     eh = int(row.get('end_hour', 0))
                     em = int(row.get('end_minute', 0))
