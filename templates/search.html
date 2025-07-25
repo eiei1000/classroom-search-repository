@@ -12,7 +12,7 @@
             <select name="classroom" id="classroom" class="form-select" required>
                 <option value="" disabled selected>教室を選んでください</option>
                 {% for room in classrooms %}
-                <option value="{{ room }}" {% if classroom == room %}selected{% endif %}>{{ room }}教室</option>
+                <option value="{{ room.room }}" {% if classroom == room.room %}selected{% endif %}>{{ room.room }}教室</option>
                 {% endfor %}
             </select>
         </div>
