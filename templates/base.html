@@ -6,9 +6,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <header>
     <div class="container">
         <a href="{{ url_for('index') }}" class="button">ホームへ</a>
-        {% block content %}{% endblock %}
+        <h1>工学部１号館 空き教室検索アプリ</h1>
     </div>
+    <hr>
+    </header>
+            {% block content %}{% endblock %}
 </body>
 </html>

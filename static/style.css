@@ -8,6 +8,36 @@ h1 {
     color: #333;
 }
 
+header {
+    position: relative;
+}
+
+header .container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    height: 60px; /* 高さ調整は好みに応じて */
+}
+
+header .container a.button {
+    z-index: 2;
+    position: relative;
+    background-color: #007BFF;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+header .container h1 {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    font-size: 1.5em;
+    z-index: 1;
+}
+
 .button-container {
     margin-top: 30px;
 }
