@@ -1,11 +1,14 @@
 {% extends "base.html" %}
+
+{% block title %}空き教室を検索{% endblock %}
+
 {% block content %}
     <h2>空き教室を検索</h2>
     <form method="POST" action="">
         <label for="weekday">曜日:</label>
         <select name="weekday" id="weekday" required>
             {% for day in ["月", "火", "水", "木", "金"] %}
-            <option value="{{ day }}" {% if request_form.get('weekday') == day %}selected{% endif %}>{{ day }}</option>
+            <option value="{{ day }}" {% if request_form.get('weekday') == day %}selected{% endif %}>{{ day }}曜日</option>
             {% endfor %}
         </select>
 
@@ -18,26 +21,31 @@
 
         <button type="submit">検索</button>
     </form>
-
-    <h3>検索結果</h3>
-    {% if search_performed %}
-        {% if rooms %}
-            <table>
-                <thead>
-                    <tr><th>空き教室一覧</th></tr>
-                </thead>
-                <tbody>
-                    {% for room in rooms %}
-                    <tr>
-                        <td>{{ room }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    
+    <div class="results-container">
+        <h3>検索結果</h3>
+        {% if search_performed %}
+            {% if rooms %}
+                <table>
+                    <thead>
+                        <tr><th>空き教室一覧</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for room in rooms %}
+                        <tr>
+                            <td>{{ room }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="info-text">この日時に空いている教室はありません。</p>
+            {% endif %}
         {% else %}
-            <p>この日時に空いている教室はありません。</p>
+            <p class="info-text">曜日と限目を指定して検索してください。</p>
         {% endif %}
-    {% else %}
-        <p>曜日と限目を指定して検索してください。</p>
-    {% endif %}
+    </div>
+     <div class="back-button-container">
+        <a href="{{ url_for('index') }}" class="button">ホームへ戻る</a>
+    </div>
 {% endblock %}

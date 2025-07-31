@@ -2,17 +2,22 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}{% endblock %} - アプリケーション名</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}琉大工学部 教室利用状況{% endblock %}</title>
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <header>
-    <div class="container">
-        <a href="{{ url_for('index') }}" class="button">ホームへ</a>
-        <h1>工学部棟 空き教室検索アプリ</h1>
-    </div>
-    <hr>
+        <div class="container">
+            <a href="{{ url_for('index') }}" class="header-logo">琉大工学部 教室利用状況</a>
+        </div>
     </header>
+
+    <main>
+        <div class="container">
             {% block content %}{% endblock %}
+        </div>
+    </main>
 </body>
 </html>

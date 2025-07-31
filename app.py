@@ -4,14 +4,13 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# 曜日英→日変換辞書
-WEEKDAY_MAP = {'Mon': '月曜日', 'Tue': '火曜日', 'Wed': '水曜日', 'Thu': '木曜日', 'Fri': '金曜日', 'Sat': '土曜日', 'Sun': '日曜日'}
+WEEKDAYS_JP = ['月', '火', '水', '木', '金']
+WEEKDAY_MAP_EN_JP = {'Mon': '月', 'Tue': '火', 'Wed': '水', 'Thu': '木', 'Fri': '金', 'Sat': '土', 'Sun': '日'}
 
-# 時限定義（分単位で比較しやすく）
 PERIOD_TIMES = {
-    1: (8, 30, 10, 30),
-    2: (10, 50, 11, 50),
-    3: (12, 50, 14, 0),
+    1: (8, 30, 10, 0),
+    2: (10, 20, 11, 50),
+    3: (12, 50, 14, 20),
     4: (14, 40, 16, 10),
     5: (16, 20, 17, 50)
 }
@@ -22,8 +21,8 @@ def load_classrooms():
         with open('classrooms.csv', newline='', encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                # 'room' カラムから教室名を取得し、辞書として格納
-                classrooms.append({'room': row.get('room', '')})
+                if row.get('room'):
+                    classrooms.append({'room': row['room']})
     except FileNotFoundError:
         print("classrooms.csv が見つかりません。")
     return classrooms
@@ -37,11 +36,13 @@ def load_schedules():
                 room = row.get('room')
                 weekday = row.get('weekday')
                 try:
-                    sh = int(row.get('start_hour', 0)) 
-                    sm = int(row.get('start_minute', 0))
-                    eh = int(row.get('end_hour', 0))
-                    em = int(row.get('end_minute', 0))
-                except ValueError:
+                    if not all([row.get('start_hour'), row.get('start_minute'), row.get('end_hour'), row.get('end_minute')]):
+                        continue
+                    sh = int(row['start_hour'])
+                    sm = int(row['start_minute'])
+                    eh = int(row['end_hour'])
+                    em = int(row['end_minute'])
+                except (ValueError, TypeError):
                     continue
 
                 if not (room and weekday):
@@ -51,7 +52,7 @@ def load_schedules():
                     schedules[room] = {}
                 if weekday not in schedules[room]:
                     schedules[room][weekday] = []
-
+                
                 schedules[room][weekday].append((sh, sm, eh, em))
     except FileNotFoundError:
         print("classroom_schedules.csv が見つかりません。")
@@ -64,36 +65,59 @@ def index():
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     classrooms = load_classrooms()
-    schedules = load_schedules()
-    classroom = None
-    status = None
-    today_schedule = []
+    schedules_data = load_schedules()
+    
+    selected_classroom = None
+    current_status = None
+    schedule_matrix = None
 
     now = datetime.now()
     weekday_en = now.strftime("%a")
-    weekday = WEEKDAY_MAP[weekday_en]
-    time_now = now.strftime("%H:%M")
+    weekday_jp = WEEKDAY_MAP_EN_JP.get(weekday_en, '')
+    time_now_str = now.strftime("%H:%M")
 
     if request.method == 'POST':
-        classroom = request.form.get('classroom')
-        today_schedule = schedules.get(classroom, {}).get(weekday, [])
+        selected_classroom = request.form.get('classroom')
+        
+        if selected_classroom:
+            today_reservations = schedules_data.get(selected_classroom, {}).get(weekday_jp, [])
+            current_status = "空き"
+            for sh, sm, eh, em in today_reservations:
+                start_time = now.replace(hour=sh, minute=sm, second=0, microsecond=0)
+                end_time = now.replace(hour=eh, minute=em, second=0, microsecond=0)
+                if start_time <= now < end_time:
+                    current_status = "使用中"
+                    break
 
-        status = "空き"
-        for sh, sm, eh, em in today_schedule:
-            start = now.replace(hour=sh, minute=sm, second=0, microsecond=0)
-            end = now.replace(hour=eh, minute=em, second=0, microsecond=0)
-            if start <= now < end:
-                status = "使用中"
-                break
+            schedule_matrix = {}
+            for period in range(1, 6):
+                schedule_matrix[period] = {}
+                ps_h, ps_m, pe_h, pe_m = PERIOD_TIMES[period]
+                period_start_mins = ps_h * 60 + ps_m
+                period_end_mins = pe_h * 60 + pe_m
+
+                for day in WEEKDAYS_JP:
+                    is_reserved = False
+                    day_reservations = schedules_data.get(selected_classroom, {}).get(day, [])
+                    
+                    for sh, sm, eh, em in day_reservations:
+                        res_start_mins = sh * 60 + sm
+                        res_end_mins = eh * 60 + em
+                        
+                        if res_start_mins < period_end_mins and res_end_mins > period_start_mins:
+                            is_reserved = True
+                            break
+                    
+                    schedule_matrix[period][day] = "利用不可" if is_reserved else "空き"
 
     return render_template(
         'search.html',
         classrooms=classrooms,
-        classroom=classroom,
-        status=status,
-        time=time_now,
-        weekday=weekday,
-        today_schedule=today_schedule
+        classroom=selected_classroom,
+        status=current_status,
+        time=time_now_str,
+        weekday=weekday_jp,
+        schedule_matrix=schedule_matrix
     )
 
 @app.route('/display', methods=['GET', 'POST'])
@@ -115,8 +139,8 @@ def classroom_display():
             classrooms = load_classrooms()
             schedules = load_schedules()
 
-            for room in classrooms:
-                room_name = room.get('room')
+            for room_data in classrooms:
+                room_name = room_data.get('room')
                 is_reserved = False
                 entries = schedules.get(room_name, {}).get(weekday_query, [])
 
@@ -124,13 +148,11 @@ def classroom_display():
                     res_start = sh * 60 + sm
                     res_end = eh * 60 + em
 
-                    # 重複判定：予約開始 < 検索終了 AND 予約終了 > 検索開始
                     if res_start < period_end and res_end > period_start:
                         is_reserved = True
                         break
 
                 if not is_reserved:
-                    # 教室名の文字列をリストに追加
                     available_rooms.append(room_name)
 
     return render_template(

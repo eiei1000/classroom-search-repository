@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
 {% block title %}
-一覧画面
+メニュー一覧
 {% endblock %}
 
 {% block content %}
-<h1>メニュー一覧</h1>
+<h1>メニュー</h1>
+<p>教室の空き状況を調べられます。</p>
 
-<div class="button-container">
-   <a href="{{ url_for('search') }}" class="button">検索画面へ</a>
-
-   <a href="{{ url_for('classroom_display') }}" class="button">教室表示画面へ</a>
+<div class="menu-container">
+   <a href="{{ url_for('search') }}" class="menu-button">教室名から検索</a>
+   <a href="{{ url_for('classroom_display') }}" class="menu-button">時間から検索</a>
 </div>
 {% endblock %}
